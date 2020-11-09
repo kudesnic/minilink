@@ -1,0 +1,92 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    pagination.per_page: 20
+    upload_path: 'uploads'
+    wamp_log_path: "%kernel.logs_dir%/%kernel.environment%wamp.log"
+    mercure_secret_key: "%env(MERCURE_SECRET_KEY)%"
+    mercure_subscribe_url: "%env(MERCURE_SUBSCRIBE_URL)%"
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    App\EventListener\ExceptionListener:
+        tags:
+        - { name: kernel.event_listener, event: kernel.exception }
+
+    acme_api.event.jwt_decoded_listener:
+        class: App\EventListener\JWTDecodedListener
+        arguments: [ '@request_stack' ]
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
+
+    acme_api.event.jwt_created_listener:
+        class: App\EventListener\JWTCreatedListener
+        arguments: [ '@request_stack' ]
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
+
+    acme_api.event.authentication_success_listener:
+        class: App\EventListener\AuthenticationSuccessListener
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
+
+    acme_api.event.authentication_failure_listener:
+        class: App\EventListener\AuthenticationFailureListener
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_failure, method: onAuthenticationFailureResponse }
+
+#    acme_api.event.jwt_decoded_listener:
+#        class: App\EventListener\JWTDecodedListener
+#        arguments: [ '@request_stack' ]
+#        tags:
+#            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
+
+    App\Serializer\FormExceptionNormalizer:
+        tags: ['serializer.normalizer']
+
+    App\Serializer\ValidationExceptionNormalizer:
+        tags: ['serializer.normalizer']
+
+    App\Entity\User:
+        autowire: true
+
+    Symfony\Component\Security\Core\User\UserInterface: '@App\Entity\User'
+    Symfony\Component\Security\Guard\AuthenticatorInterface: '@App\Security\ActiveUserJWTTokenAuthenticator'
+
+    App\Factory\NormalizerFactory:
+        arguments: [!tagged serializer.normalizer]
+        public: true
+
+    # Injects only user provider for users with status = active. So JWTUserHoldercan be used only for active users
+    App\Service\JWTUserService:
+        $userProvider: '@security.user.provider.concrete.main_user_provider'
+
+    App\EventListener\MessageEntityListener:
+        tags:
+            - # these are the options required to define the entity listener
+                name: 'doctrine.orm.entity_listener'
+                event: 'prePersist'
+                entity: 'App\Entity\Message'
+                lazy: true
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

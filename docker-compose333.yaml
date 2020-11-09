@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  frontend:
+    build:
+      dockerfile: docker/frontend/Dockerfile
+      context: .
+    restart: on-failure
+    env_file:
+      - ./.env
+    user: ${LOCAL_USER}
+    volumes:
+      - ./frontend:/usr/src/frontend
