@@ -36,13 +36,19 @@ services:
       - './docker/certs/cert.pem:/etc/nginx/conf.d/cert.pem:ro'
       - './docker/certs/key.pem:/etc/nginx/conf.d/key.pem:ro'
     ports:
-      - ${NGINX_PORT}:443
+      - mode: host
+        protocol: tcp
+        published: 8008
+        target: 443
   php:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
     volumes:
       - './backend:/usr/src/backend'
+      - './docker/php/php.ini:/usr/local/etc/php.ini'
+      - './docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini'
+      - './docker/php/php_browscap.ini:/usr/local/etc/php/conf.d/php_browscap.ini'
     restart: on-failure
     env_file:
       - ./.env

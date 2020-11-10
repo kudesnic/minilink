@@ -10,10 +10,11 @@ use App\Repository\LinkRepository;
 use App\Repository\PlatformRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use GeoIp2\Database\Reader;
-use Monolog\Logger;
+use GeoIp2\Exception\AddressNotFoundException;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 /**
@@ -23,7 +24,9 @@ use Symfony\Component\Routing\Annotation\Route;
 class LinkTrackingController extends AbstractController
 {
     /**
-     * Saves statistic for a link
+     * Saves statistic for a link.
+     * We use Max Ming geo ip database for country detecting and fill "country" table with names of countries,
+     * so in statistic calculation we may use country id for calculation
      *
      * @Route("track/{guid}", name="links_list", requirements={"guid":".*"},  methods={"GET"})
      *
@@ -33,12 +36,10 @@ class LinkTrackingController extends AbstractController
      * @param PlatformRepository $platformRepository
      * @param CountryRepository $countryRepository
      * @param Reader $geoIpReader
-     * @param Logger $logger
+     * @param LoggerInterface $logger
      * @return ApiResponse
      * @throws \Doctrine\Common\Annotations\AnnotationException
      * @throws \Doctrine\ORM\ORMException
-     * @throws \GeoIp2\Exception\AddressNotFoundException
-     * @throws \HttpException
      * @throws \MaxMind\Db\Reader\InvalidDatabaseException
      * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
      */
@@ -58,31 +59,32 @@ class LinkTrackingController extends AbstractController
         if($link->getExpirationTime() < time()){
             $link->setStatus(Link::STATUS_EXPIRED);
             $entityManager->persist($link);
-            $entityManager->flash();
-            throw new \HttpException('Link is expired!', Response::HTTP_GONE);
+            $entityManager->flush();
+            throw new HttpException(Response::HTTP_GONE, 'Link is expired!');
         }
         $newVisit = new Visit();
         $newVisit->setLink($link);
         $newVisit->setIp($_SERVER['REMOTE_ADDR']);
         $newVisit->setReferer($_SERVER['HTTP_REFERER'] ?? null);
         $newVisit->setUserAgent($_SERVER['HTTP_USER_AGENT']);
-        $browserInfo = get_browser(null, true);
+        $browserInfo = get_browser(null, true); //requires browscap to be confidured
 
         //platform might be empty
         if($browserInfo['platform']){
             $platformRepository->createPlatformIfDoesntExist($browserInfo['platform'], false);
         }
-
-//        try{
+        //localhost  ip can not be found in db, so it causes an exception
+        // .... .. .0.1 appears when the request is originated from the same host as the container. In real case it should work fine
+        try{
             $countryName = $geoIpReader->country($_SERVER['REMOTE_ADDR']);
-            $country = $countryRepository->createCountryIfDoesntExist($countryName, false);
+            $country = $countryRepository->createCountryIfDoesntExist($countryName->country->name, false);
             $newVisit->setCountry($country);
-//        } catch (\Error $e){
-//            $logger->info('Can\'t detect country for an ip ' . $_SERVER['REMOTE_ADDR'] . ' ' . $e->getMessage());
-//        }
+        } catch (AddressNotFoundException $e){
+            $logger->info('Can\'t detect country for an ip ' . $_SERVER['REMOTE_ADDR'] . ' ' . $e->getMessage());
+        }
 
         $entityManager->persist($newVisit);
-        $entityManager->flash();
+        $entityManager->flush();
 
         return new ApiResponse($newVisit);
     }
