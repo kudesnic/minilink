@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass=LinkRepository::class)
  * @ORM\Table(name="link",indexes={@ORM\Index(name="guid_status_idx", columns={"guid", "status"}),
+ *     @ORM\Index(name="guid_idx",  columns={"guid" }),
  *     @ORM\Index(name="owner_id_idx", columns={"owner_id"})
  * })
  */

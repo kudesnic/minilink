@@ -68,9 +68,8 @@ class LinkTrackingController extends AbstractController
         $newVisit->setReferer($_SERVER['HTTP_REFERER'] ?? null);
         $newVisit->setUserAgent($_SERVER['HTTP_USER_AGENT']);
         $browserInfo = get_browser(null, true); //requires browscap to be confidured
-
         //platform might be empty
-        if($browserInfo['platform']){
+        if($browserInfo['platform'] && $browserInfo['platform'] != 'unknown'){
             $platformRepository->createPlatformIfDoesntExist($browserInfo['platform'], false);
         }
         //localhost  ip can not be found in db, so it causes an exception

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Link;
 use App\Entity\Visit;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,6 +20,60 @@ class VisitRepository extends ServiceEntityRepository
         parent::__construct($registry, Visit::class);
     }
 
+    /**
+     * @param Link $link
+     * @return mixed
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getCountryLinkStatistic(Link $link)
+    {
+        return $this->createQueryBuilder('v')
+            ->select('count(v.id)')
+            ->join('v.country', 'c')
+            ->andWhere('v.link = :link')
+            ->setParameter('link', $link)
+            ->groupBy('v.country')
+            ->getQuery()
+            ->getOneOrNullResult();
+
+    }
+
+    /**
+     * @param Link $link
+     * @return mixed
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getPlatformLinkStatistic(Link $link)
+    {
+        return $this->createQueryBuilder('v')
+            ->select('count(v.id)')
+            ->join('v.platform', 'p')
+            ->andWhere('v.link = :link')
+            ->setParameter('link', $link)
+            ->groupBy('v.platform')
+            ->getQuery()
+            ->getOneOrNullResult();
+
+    }
+
+    /**
+     * @param Link $link
+     * @return mixed
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getTotalVisits(Link $link)
+    {
+        return $this->createQueryBuilder('v')
+            ->select('count(v.id)')
+            ->andWhere('v.link = :link')
+            ->setParameter('link', $link)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+    }
     // /**
     //  * @return Visit[] Returns an array of Visit objects
     //  */
