@@ -18,5 +18,5 @@ To install in use install.sh script. This script will try ti install docker on y
 </p>
 
 <h2>For testing purposes you can use postman by importing environment and collection.</h2>
-<p>Postman Env file - CHAT.postman_environment</p>
+<p>Postman Env file - minilink.postman_environment</p>
 <p>Collection file minilink.postman_collection</p>
