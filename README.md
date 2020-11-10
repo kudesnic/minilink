@@ -16,3 +16,7 @@ To install in use install.sh script. This script will try ti install docker on y
   openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096</br>
   openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout</br>
 </p>
+
+<h2>For testing purposes you can use postman by importing environment and collection.</h2>
+<p>Postman Env file - CHAT.postman_environment</p>
+<p>Collection file minilink.postman_collection</p>
