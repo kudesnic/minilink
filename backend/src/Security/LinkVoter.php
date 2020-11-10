@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\Link;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +16,7 @@ class LinkVoter extends Voter
     const VIEW = 'view';
     const EDIT = 'edit';
     const DELETE = 'delete';
+    const CREATE = 'create';
 
     /**
      * @var Security
@@ -48,12 +50,12 @@ class LinkVoter extends Voter
     {
 
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, [ self::VIEW, self::EDIT, self::DELETE, self::WRITE])) {
+        if (!in_array($attribute, [ self::VIEW, self::EDIT, self::DELETE, self::CREATE])) {
             return false;
         }
 
         // only vote on `Chat` objects
-        if (!$subject instanceof User) {
+        if (!$subject instanceof Link) {
             return false;
         }
 
@@ -77,7 +79,7 @@ class LinkVoter extends Voter
 
         $user = $token->getUser();
 
-        if (!$user instanceof User || $user->getId() != $subject->getUserId()) {
+        if (!$user instanceof User || $user->getId() != $subject->getOwner()->getId()) {
             return false;
         } else {
             return true;

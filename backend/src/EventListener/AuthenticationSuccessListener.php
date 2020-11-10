@@ -44,7 +44,6 @@ class AuthenticationSuccessListener
             'email' => $user->getEmail(),
             'name' => $user->getName(),
             'telephone' => $user->getTelephone(),
-            'img' => $user->getImg(),
             'roles' => $user->getRoles()
         ];
 

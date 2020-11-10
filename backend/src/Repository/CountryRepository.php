@@ -19,6 +19,26 @@ class CountryRepository extends ServiceEntityRepository
         parent::__construct($registry, Country::class);
     }
 
+    /**
+     * @param string $countryName
+     * @param bool $flash
+     * @return Country
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function createCountryIfDoesntExist(string $countryName, bool $flash = true): Country
+    {
+        $country = $this->findOneBy(['name' => $countryName]);
+        if(!$country){
+            $country = new Country();
+            $country->setName($countryName);
+            $this->_em->persist($country);
+            if($flash){
+                $this->_em->flash();
+            }
+        }
+
+        return $country;
+    }
     // /**
     //  * @return Country[] Returns an array of Country objects
     //  */

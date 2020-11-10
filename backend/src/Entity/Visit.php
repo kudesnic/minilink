@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Repository\VisitRepository;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=VisitRepository::class)
@@ -20,6 +20,7 @@ class Visit
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups("APIGroup")
      */
     private $id;
 
@@ -31,26 +32,31 @@ class Visit
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("APIGroup")
      */
     private $user_agent;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups("APIGroup")
      */
     private $referer;
 
     /**
      * @ORM\Column(type="string", length=15)
+     * @Groups("APIGroup")
      */
     private $ip;
 
     /**
      * @ORM\ManyToOne(targetEntity=Country::class, inversedBy="visits")
+     * @Groups("APIGroup")
      */
     private $country;
 
     /**
      * @ORM\ManyToOne(targetEntity=Platform::class, inversedBy="visits")
+     * @Groups("APIGroup")
      */
     private $platform;
 

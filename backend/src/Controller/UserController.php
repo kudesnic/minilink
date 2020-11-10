@@ -11,16 +11,18 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+
 /**
  * Class UserController
  * @package App\Controller
+ * @Route("/user", name="user.")
  */
 class UserController extends AbstractController
 {
     /**
      * Gets users from the same tree and all levels
      *
-     * @Route("/user", name="users_list",  defaults={"page": 1},  methods={"GET"})
+     * @Route("", name="list",  defaults={"page": 1},  methods={"GET"})
      *
      * @param Request $request
      * @param EntityManagerInterface $em
@@ -52,9 +54,8 @@ class UserController extends AbstractController
         return new ApiResponse($result);
     }
 
-
     /**
-     * @Route("/user/{id}", name="user_show", requirements={"id":"\d+"},  methods={"GET"})
+     * @Route("/{id}", name="show", requirements={"id":"\d+"},  methods={"GET"})
      *
      * @param User $user
      * @return ApiResponse
@@ -67,5 +68,6 @@ class UserController extends AbstractController
 
         return new ApiResponse($user);
     }
+
 
 }

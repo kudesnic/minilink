@@ -3,15 +3,12 @@
 namespace App\Controller;
 
 use App\DTO\LinkInsertDTORequest;
+use App\DTO\LinkUpdateDTORequest;
 use App\Entity\Link;
-use App\Entity\User;
 use App\Http\ApiResponse;
-use App\Repository\LinkRepository;
 use App\Security\LinkVoter;
-use App\Security\UserVoter;
 use App\Service\JWTUserService;
 use App\Service\PaginationServiceByQueryBuilder;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,13 +17,14 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Class LinkController
  * @package App\Controller
+ * @Route("/link", name="link.")
  */
 class LinkController extends AbstractController
 {
     /**
      * Gets users from the same tree and all levels
      *
-     * @Route("/link", name="links_list",  defaults={"page": 1},  methods={"GET"})
+     * @Route("", name="list",  defaults={"page": 1},  methods={"GET"})
      *
      * @param Request $request
      * @param EntityManagerInterface $em
@@ -46,7 +44,7 @@ class LinkController extends AbstractController
         $page = $request->query->get('page');
         $user = $userHolder->getUser($request);
         $repository = $em->getRepository(Link::class);
-        $qb = $repository->findAll($user);
+        $qb = $repository->userLinksQueryBulder($user);
         if($request->query->has('status')){
             $status = json_encode([$request->query->get('status')], true);
             $qb->andWhere('status = ' . $status);
@@ -59,7 +57,7 @@ class LinkController extends AbstractController
 
 
     /**
-     * @Route("/link/{id}", name="link_show", requirements={"id":"\d+"},  methods={"GET"})
+     * @Route("/{id}", name="show", requirements={"id":"\d+"},  methods={"GET"})
      *
      * @param Link $link
      * @return ApiResponse
@@ -74,28 +72,26 @@ class LinkController extends AbstractController
     }
 
     /**
-     * @Route("/link", name="store", methods={"POST"})
+     * @Route("", name="store", methods={"POST"})
      *
      * @param LinkInsertDTORequest $request
      * @param JWTUserService $userHolder
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @return ApiResponse
      * @throws \Doctrine\Common\Annotations\AnnotationException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException
      * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
      */
     public function store(
         LinkInsertDTORequest $request,
         JWTUserService $userHolder,
-        EntityManager $entityManager
+        EntityManagerInterface $entityManager
     ) {
         $user = $userHolder->getUser($request->getRequest());
         $linkEntity = new Link();
-        $linkEntity->setUser($user);
+        $linkEntity->setOwner($user);
         $linkEntity->setLink($request->link);
-        $linkEntity->setLivingTime($request->living_time);
+        $linkEntity->setExpirationTime(time() + $request->expiration_time);
         $linkEntity->setStatus($request->status ?? Link::STATUS_ACTIVE);
         $entityManager->persist($linkEntity);
         $entityManager->flush();
@@ -104,33 +100,44 @@ class LinkController extends AbstractController
     }
 
     /**
-     * @Route("/link", name="store", methods={"POST"})
+     * @Route("/{id}", name="update", requirements={"id":"\d+"}, methods={"PUT"})
      *
-     * @param LinkInsertDTORequest $request
-     * @param JWTUserService $userHolder
-     * @param EntityManager $entityManager
+     * @param Link $link
+     * @param LinkUpdateDTORequest $request
+     * @param EntityManagerInterface $entityManager
      * @return ApiResponse
      * @throws \Doctrine\Common\Annotations\AnnotationException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException
      * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
      */
     public function update(
-        LinkInsertDTORequest $request,
-        JWTUserService $userHolder,
-        EntityManager $entityManager
+        Link $link,
+        LinkUpdateDTORequest $request,
+        EntityManagerInterface $entityManager
     ) {
-        $user = $userHolder->getUser($request->getRequest());
-        $linkEntity = new Link();
-        $linkEntity->setUser($user);
-        $linkEntity->setLink($request->link);
-        $linkEntity->setLivingTime($request->living_time);
-        $linkEntity->setStatus($request->status ?? Link::STATUS_ACTIVE);
+        $this->denyAccessUnlessGranted(LinkVoter::EDIT, $link);
+        $linkEntity = $request->populateEntity($link);
         $entityManager->persist($linkEntity);
         $entityManager->flush();
 
         return new ApiResponse($linkEntity, Response::HTTP_CREATED);
+    }
+
+    /**
+     * @Route("/{id}", name="delete", requirements={"id":"\d+"},  methods={"DELETE"})
+     *
+     * @param Link $link
+     * @param EntityManagerInterface $entityManager
+     * @return ApiResponse
+     * @throws \Doctrine\Common\Annotations\AnnotationException
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+     */
+    public function destroy(Link $link, EntityManagerInterface $entityManager)
+    {
+        $this->denyAccessUnlessGranted(LinkVoter::DELETE, $link);
+        $entityManager->remove($link);
+        $entityManager->flush();
+
+        return new ApiResponse();
     }
 
 }

@@ -47,12 +47,6 @@ class SecurityController extends AbstractController
         $entity->setPassword($encodedPassword);
         $entity->setRoles([User::ROLE_USER]);
 
-        if($request->img_encoded){
-            $imgDirectory = User::UPLOAD_DIRECTORY . '/' . $user->getId() . '/' . User::AVATAR_PATH ;
-            $imgPath = $imageService->saveImage($request->img_encoded, $imgDirectory, uniqid());
-            $entity->setImg($imgPath);
-        }
-
         $em->persist($entity);
         $em->flush($entity);
         $response = $authHandler->handleAuthenticationSuccess($entity);

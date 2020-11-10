@@ -19,6 +19,26 @@ class PlatformRepository extends ServiceEntityRepository
         parent::__construct($registry, Platform::class);
     }
 
+    /**
+     * @param string $platformName
+     * @param bool $flash
+     * @return Platform
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function createPlatformIfDoesntExist(string $platformName, bool $flash = true): Platform
+    {
+        $platform = $this->findOneBy(['name' => $platformName]);
+        if(!$platform){
+            $platform = new Platform();
+            $platform->setName($platformName);
+            $this->_em->persist($platform);
+            if($flash){
+                $this->_em->flash();
+            }
+        }
+
+        return $platform;
+    }
     // /**
     //  * @return Platform[] Returns an array of Platform objects
     //  */

@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Link;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +21,17 @@ class LinkRepository extends ServiceEntityRepository
         parent::__construct($registry, Link::class);
     }
 
+    /**
+     * @param User $user
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function userLinksQueryBulder(User $user): QueryBuilder
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.owner = :owner')
+            ->setParameter('owner', $user)
+            ->orderBy('l.id', 'ASC');
+    }
     // /**
     //  * @return Link[] Returns an array of Link objects
     //  */

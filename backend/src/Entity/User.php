@@ -81,9 +81,15 @@ class User implements UserInterface
      */
     private $updated;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Link::class, mappedBy="owner", orphanRemoval=true)
+     */
+    private $links;
+
     public function __construct()
     {
         $this->img = self::DEFAULT_USER_ICON;
+        $this->links = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -195,6 +201,36 @@ class User implements UserInterface
     public function getUpdated(): int
     {
         return $this->updated;
+    }
+
+    /**
+     * @return Collection|Link[]
+     */
+    public function getLinks(): Collection
+    {
+        return $this->links;
+    }
+
+    public function addLink(Link $link): self
+    {
+        if (!$this->links->contains($link)) {
+            $this->links[] = $link;
+            $link->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLink(Link $link): self
+    {
+        if ($this->links->removeElement($link)) {
+            // set the owning side to null (unless already changed)
+            if ($link->getOwner() === $this) {
+                $link->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 
 }
