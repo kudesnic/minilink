@@ -5,7 +5,7 @@
 To install in use install.sh script. This script will try ti install docker on your pc and set up a virtual environment for the application. <br>
   If it got failed, then you may try to install it manually using the below commands: 
   </p>
-  /p>
+  </p>
   docker-compose build --no-cache</br>
   docker-compose up</br>
   docker-compose exec php composer install</br>
