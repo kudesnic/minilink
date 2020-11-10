@@ -12,9 +12,9 @@ To install it use install.sh script. This script will try to install docker on y
   docker-compose exec php composer install</br>
   docker-compose exec php php bin/console doctrine:shema:create --force</br>
   docker-compose exec php php bin/console geoip2:update</br>
-  mkdir -p config/jwt</br>
-  openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096</br>
-  openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout</br>
+  mkdir -p backend/config/jwt</br>
+  openssl genpkey -out backend/config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096</br>
+  openssl pkey -in backend/config/jwt/private.pem -out config/jwt/public.pem -pubout</br>
 </p>
 
 <h2>For testing purposes you can use postman by importing environment and collection.</h2>
