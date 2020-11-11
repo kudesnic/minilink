@@ -21,19 +21,19 @@ class CountryRepository extends ServiceEntityRepository
 
     /**
      * @param string $countryName
-     * @param bool $flash
+     * @param bool $flush
      * @return Country
      * @throws \Doctrine\ORM\ORMException
      */
-    public function createCountryIfDoesntExist(string $countryName, bool $flash = true): Country
+    public function createCountryIfDoesntExist(string $countryName, bool $flush = true): Country
     {
         $country = $this->findOneBy(['name' => $countryName]);
         if(!$country){
             $country = new Country();
             $country->setName($countryName);
             $this->_em->persist($country);
-            if($flash){
-                $this->_em->flash();
+            if($flush){
+                $this->_em->flush();
             }
         }
 

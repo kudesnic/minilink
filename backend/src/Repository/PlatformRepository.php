@@ -21,19 +21,19 @@ class PlatformRepository extends ServiceEntityRepository
 
     /**
      * @param string $platformName
-     * @param bool $flash
+     * @param bool $flush
      * @return Platform
      * @throws \Doctrine\ORM\ORMException
      */
-    public function createPlatformIfDoesntExist(string $platformName, bool $flash = true): Platform
+    public function createPlatformIfDoesntExist(string $platformName, bool $flush = true): Platform
     {
         $platform = $this->findOneBy(['name' => $platformName]);
         if(!$platform){
             $platform = new Platform();
             $platform->setName($platformName);
             $this->_em->persist($platform);
-            if($flash){
-                $this->_em->flash();
+            if($flush){
+                $this->_em->flush();
             }
         }
 
