@@ -25,39 +25,14 @@ class LinkRepository extends ServiceEntityRepository
      * @param User $user
      * @return \Doctrine\ORM\QueryBuilder
      */
-    public function userLinksQueryBulder(User $user): QueryBuilder
+    public function userLinksQueryBulder(User $user, $status): QueryBuilder
     {
+        $status = json_encode($status, true);
+
         return $this->createQueryBuilder('l')
             ->andWhere('l.owner = :owner')
             ->setParameter('owner', $user)
             ->orderBy('l.id', 'ASC');
     }
-    // /**
-    //  * @return Link[] Returns an array of Link objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Link
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

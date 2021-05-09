@@ -6,6 +6,7 @@ use App\DTO\LinkInsertDTORequest;
 use App\DTO\LinkUpdateDTORequest;
 use App\Entity\Link;
 use App\Http\ApiResponse;
+use App\Repository\LinkRepository;
 use App\Security\LinkVoter;
 use App\Service\JWTUserService;
 use App\Service\PaginationServiceByQueryBuilder;
@@ -29,6 +30,7 @@ class LinkController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $em
      * @param PaginationServiceByQueryBuilder $paginationManger
+     * @param LinkRepository $linkRepository
      * @param JWTUserService $userHolder
      * @return ApiResponse
      * @throws \Doctrine\Common\Annotations\AnnotationException
@@ -39,16 +41,15 @@ class LinkController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         PaginationServiceByQueryBuilder $paginationManger,
+        LinkRepository $linkRepository,
         JWTUserService $userHolder
     ) {
         $page = $request->query->get('page');
         $user = $userHolder->getUser($request);
-        $repository = $em->getRepository(Link::class);
-        $qb = $repository->userLinksQueryBulder($user);
         if($request->query->has('status')){
-            $status = json_encode([$request->query->get('status')], true);
-            $qb->andWhere('status = ' . $status);
+            $cstatus = json_encode([$request->query->get('status')], true);
         }
+        $qb = $linkRepository->getUserLinksQueryBulder($user, $request->query->has('status'));
         $result = $paginationManger->setRepository(Link::class)
                 ->paginate($qb, $page, null);
 
